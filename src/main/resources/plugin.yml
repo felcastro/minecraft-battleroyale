@@ -1,0 +1,38 @@
+name: BattleRoyale
+version: ${project.version}
+main: me.litwar.battleroyale.BattleRoyale
+authors: [Litwar]
+description: BattleRoyale gamemode
+commands:
+  newgame:
+    description: Prepares a new match
+    default: op
+  startgame:
+    description: Starts a prepared match
+    default: op
+  setattackspeed:
+    description: Sets players attack speed
+    default: op
+  setworldborder:
+    description: Sets default world border size
+    default: op
+  setbordershrink:
+    description: Sets default world border shrink time
+    default: op
+  setlootpercentage:
+    description: Sets loot percentage for chests
+    default: op
+  setallowoceanlevel:
+    description: Sets if water levels are allowed
+    default: op
+  setchestcount:
+    description: Sets loot chests spawn count
+    default: op
+  setallowmobs:
+    description: Sets if mobs can spawn
+    default: op
+  setworldtime:
+    description: Sets the world time
+    default: op
+  rank:
+    description: Sends the current rank to the user
