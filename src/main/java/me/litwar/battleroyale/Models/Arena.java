@@ -115,12 +115,13 @@ public class Arena {
         System.out.println(this.allowOcean);
         int spawnX;
         int spawnZ;
-        boolean hasOcean;
+        boolean oceanFound;
         do {
             spawnX = getRandomCoordinate();
             spawnZ = getRandomCoordinate();
-            hasOcean = hasOcean(spawnX, spawnZ);
-        } while (!this.allowOcean && hasOcean);
+            oceanFound = this.hasOcean(spawnX, spawnZ);
+            System.out.println(oceanFound);
+        } while (!this.allowOcean && oceanFound);
 
         this.spawn = new Location(this.world, spawnX, 160, spawnZ);
     }
@@ -243,10 +244,6 @@ public class Arena {
             inventory.addItem(invArray.toArray(new ItemStack[0]));
 
             new Location(world, chestBlock.getX(), chestBlock.getY() + 1, chestBlock.getZ()).getBlock().setType(Material.GLOWSTONE);
-//            chestBlock = new Location(world, chestBlock.getX(), chestBlock.getY() + 1, chestBlock.getZ()).getBlock();
-//            chestBlock.setType(Material.GLOWSTONE, true);
-//            chestBlock.setType(chestBlock.getType());
-//            chestBlock.getState().update(true);
 
             if (shouldUnload) {
                 chestBlock.getChunk().unload();

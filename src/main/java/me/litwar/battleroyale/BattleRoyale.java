@@ -147,7 +147,7 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
         if (event.getBlock().getType().equals(Material.TNT) && !Configuration.currentMatch.getArena().isCloseToSpawn(event.getBlock().getLocation())) {
             event.getBlock().setType(Material.AIR);
             Entity tnt = world.spawn(new Location(world, event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ()), TNTPrimed.class);
-            ((TNTPrimed) tnt).setFuseTicks(25);
+            ((TNTPrimed) tnt).setFuseTicks(30);
         } else if (event.getBlock().getType().equals(Material.TNT)) {
             event.setCancelled(true);
             event.getPlayer().sendMessage(ChatColor.RED + "Não permitido no centro da arena");
@@ -222,10 +222,10 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
         event.getEntity().getPlayer().setGameMode(GameMode.SPECTATOR);
     }
 
-    @EventHandler
-    public void onPlayerDropItem(PlayerDropItemEvent event) {
-        event.getItemDrop().remove();
-    }
+//    @EventHandler
+//    public void onPlayerDropItem(PlayerDropItemEvent event) {
+//        event.getItemDrop().remove();
+//    }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
@@ -260,12 +260,6 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
             System.out.println("Item consume error: " + event.getItem().getType());
         }
     }
-
-//    @EventHandler
-//    public void onPlayerPickupItem(Player event) {
-//        event.setCancelled(event.toWeatherState());
-//    }
-
 
 //    @EventHandler
 //    public void onPlayerInteract(PlayerInteractEvent event) {
