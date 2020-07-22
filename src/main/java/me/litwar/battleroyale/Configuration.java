@@ -1,5 +1,6 @@
 package me.litwar.battleroyale;
 
+import me.litwar.battleroyale.Models.CustomEnchantmentType;
 import me.litwar.battleroyale.Models.CustomPotionType;
 import me.litwar.battleroyale.Models.Match;
 import org.bukkit.Color;
@@ -7,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TippedArrow;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
@@ -23,6 +25,7 @@ public class Configuration {
 
     // Configuration file data
     public static int attackSpeed;
+    public static int axeAttackSpeed;
     public static int worldBorder;
     public static int worldBorderShrinkTime;
     public static int worldTime;
@@ -50,6 +53,10 @@ public class Configuration {
 
     public static ItemStack[][] blockLoot = new ItemStack[][] {
             {new ItemStack(Material.QUARTZ_BLOCK, 16)},
+            {new ItemStack(Material.BRICK, 16)},
+            {new ItemStack(Material.CONCRETE, 16)},
+            {new ItemStack(Material.PACKED_ICE, 16)},
+            {new ItemStack(Material.REDSTONE_BLOCK, 16)},
             {new ItemStack(Material.WOOD, 16)},
             {new ItemStack(Material.SEA_LANTERN, 16)},
             {new ItemStack(Material.RED_NETHER_BRICK, 16)},
@@ -61,15 +68,17 @@ public class Configuration {
             {new ItemStack(Material.BUCKET)},
             {new ItemStack(Material.ENDER_PEARL, 1)},
             {new ItemStack(Material.GOLD_PICKAXE)},
-            {new ItemStack(Material.FIREWORK, 1)},
+//            {new ItemStack(Material.FIREWORK, 1)},
             {new ItemStack(Material.FLINT_AND_STEEL, 1)},
             {new ItemStack(Material.INK_SACK, 2, (short) 4)},
             {new ItemStack(Material.EXP_BOTTLE, 5)},
             {new ItemStack(Material.IRON_INGOT, 2)},
             {new ItemStack(Material.GOLD_INGOT, 2)},
+            {new ItemStack(Material.MILK_BUCKET)},
     };
     public static ItemStack[][] simpleLoot = new ItemStack[][] {
             {new ItemStack(Material.IRON_SWORD)},
+            {new ItemStack(Material.IRON_AXE)},
             {new ItemStack(Material.IRON_HELMET)},
             {new ItemStack(Material.IRON_CHESTPLATE)},
             {new ItemStack(Material.IRON_LEGGINGS)},
@@ -79,6 +88,7 @@ public class Configuration {
             {new ItemStack(Material.GOLD_LEGGINGS)},
             {new ItemStack(Material.GOLD_BOOTS)},
             {new ItemStack(Material.GOLD_SWORD)},
+            {new ItemStack(Material.GOLD_AXE)},
             {new ItemStack(Material.CHAINMAIL_HELMET)},
             {new ItemStack(Material.CHAINMAIL_CHESTPLATE)},
             {new ItemStack(Material.CHAINMAIL_LEGGINGS)},
@@ -86,6 +96,7 @@ public class Configuration {
             {new ItemStack(Material.DIAMOND, 1)},
             {new ItemStack(Material.BOW)},
             {new ItemStack(Material.TNT, 1)},
+            {new ItemStack(Material.EGG, 2)},
     };
     public static ItemStack[][] rareLoot = new ItemStack[][] {
             {new ItemStack(Material.DIAMOND_HELMET)},
@@ -93,8 +104,33 @@ public class Configuration {
             {new ItemStack(Material.DIAMOND_LEGGINGS)},
             {new ItemStack(Material.DIAMOND_BOOTS)},
             {new ItemStack(Material.DIAMOND_SWORD)},
+            {new ItemStack(Material.DIAMOND_AXE)},
             {new ItemStack(Material.DIAMOND, 3)},
             {new ItemStack(Material.GOLDEN_APPLE, 1)},
+    };
+
+    static private CustomEnchantmentType[] customEnchantmentTypes = new CustomEnchantmentType[] {
+            new CustomEnchantmentType(Enchantment.ARROW_DAMAGE, 1, 1),
+            new CustomEnchantmentType(Enchantment.ARROW_FIRE, 1, 1),
+            new CustomEnchantmentType(Enchantment.ARROW_INFINITE, 1, 1),
+            new CustomEnchantmentType(Enchantment.ARROW_KNOCKBACK, 1, 2),
+            new CustomEnchantmentType(Enchantment.DAMAGE_ALL, 1, 1),
+            new CustomEnchantmentType(Enchantment.FIRE_ASPECT, 1, 1),
+            new CustomEnchantmentType(Enchantment.KNOCKBACK, 1, 2),
+            new CustomEnchantmentType(Enchantment.SWEEPING_EDGE, 1, 2),
+
+            new CustomEnchantmentType(Enchantment.PROTECTION_ENVIRONMENTAL, 1, 2),
+            new CustomEnchantmentType(Enchantment.PROTECTION_EXPLOSIONS, 1, 2),
+            new CustomEnchantmentType(Enchantment.PROTECTION_PROJECTILE, 1, 2),
+            new CustomEnchantmentType(Enchantment.PROTECTION_FIRE, 1, 2),
+            new CustomEnchantmentType(Enchantment.PROTECTION_FALL, 1, 2),
+            new CustomEnchantmentType(Enchantment.THORNS, 1, 2),
+            new CustomEnchantmentType(Enchantment.OXYGEN, 1, 4),
+            new CustomEnchantmentType(Enchantment.FROST_WALKER, 1, 1),
+            new CustomEnchantmentType(Enchantment.DEPTH_STRIDER, 1, 4),
+
+            new CustomEnchantmentType(Enchantment.VANISHING_CURSE, 1, 1),
+            new CustomEnchantmentType(Enchantment.BINDING_CURSE, 1, 1),
     };
 
     static private CustomPotionType[] positivePotionTypes = new CustomPotionType[] {
@@ -112,7 +148,7 @@ public class Configuration {
             new CustomPotionType(PotionEffectType.POISON,0, 1, 20 * 5, 20 * 10),
             new CustomPotionType(PotionEffectType.HARM,0, 0, 20 * 1, 20 * 1),
             new CustomPotionType(PotionEffectType.SLOW,0, 2, 20 * 7, 20 * 15),
-            new CustomPotionType(PotionEffectType.WEAKNESS,0, 1, 20 * 7, 20 * 15),
+            new CustomPotionType(PotionEffectType.WEAKNESS,0, 0, 20 * 7, 20 * 15),
             new CustomPotionType(PotionEffectType.WITHER,0, 0, 20 * 5, 20 * 10),
     };
 
@@ -121,11 +157,12 @@ public class Configuration {
             {getEnchantedItem(Material.SHIELD, new Enchantment[] {Enchantment.DURABILITY, Enchantment.MENDING}, new int[] {10, 1}, "Aegis")},
             {getGodPotion()},
             {getEnchantedItem(Material.DIAMOND_HELMET, new Enchantment[] {Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.OXYGEN}, new int[] {4, 10}, "Crown of Immortality")},
-            {getEnchantedItem(Material.DIAMOND_CHESTPLATE, new Enchantment[] {Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.PROTECTION_EXPLOSIONS}, new int[] {4, 4}, "Achilles Chestplate")},
+            {getEnchantedItem(Material.DIAMOND_CHESTPLATE, new Enchantment[] {Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.PROTECTION_EXPLOSIONS}, new int[] {4, 10}, "Achilles Chestplate")},
             {getEnchantedItem(Material.DIAMOND_LEGGINGS, new Enchantment[] {Enchantment.PROTECTION_PROJECTILE, Enchantment.PROTECTION_FIRE}, new int[] {10, 10}, "Achilles Leggings")},
             {getEnchantedItem(Material.DIAMOND_BOOTS, new Enchantment[] {Enchantment.PROTECTION_FALL, Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.DEPTH_STRIDER, Enchantment.FROST_WALKER}, new int[] {10, 3, 10, 1}, "Hermes Boots")},
             {getEnchantedItem(Material.DIAMOND_SWORD, new Enchantment[] {Enchantment.DAMAGE_ALL, Enchantment.FIRE_ASPECT, Enchantment.SWEEPING_EDGE}, new int[] {2, 2, 2}, "Excalibur")},
-            {getEnchantedItem(Material.BOW, new Enchantment[] {Enchantment.ARROW_DAMAGE}, new int[] {5}, "Doom Bow"), new ItemStack(Material.ARROW, 64)},
+            {getEnchantedItem(Material.DIAMOND_AXE, new Enchantment[] {Enchantment.KNOCKBACK}, new int[] {4}, "Mjölnir")},
+            {getEnchantedItem(Material.BOW, new Enchantment[] {Enchantment.ARROW_DAMAGE}, new int[] {5}, "Doom Bow"), new ItemStack(Material.SPECTRAL_ARROW, 10)},
     };
 
     static private ItemStack getGodPotion() {
@@ -154,6 +191,23 @@ public class Configuration {
             enchantedItem.setItemMeta(stackMeta);
         }
         return enchantedItem;
+    }
+
+    static public ItemStack getRandomBook() {
+        int enchantmentCount = ThreadLocalRandom.current().nextInt(1, 3);
+        ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
+
+        int level;
+        CustomEnchantmentType enchantment;
+        for (int i = 0; i < enchantmentCount; i++) {
+            enchantment = customEnchantmentTypes[ThreadLocalRandom.current().nextInt(0, customEnchantmentTypes.length)];
+            level = (enchantment.getMinLevel() >= enchantment.getMaxLevel()) ? enchantment.getMinLevel() : ThreadLocalRandom.current().nextInt(enchantment.getMinLevel(), enchantment.getMaxLevel());
+            meta.addStoredEnchant(enchantment.getEnchantment(), level, true);
+        }
+        book.setItemMeta(meta);
+
+        return book;
     }
 
     public static ItemStack getRandomPotion() {

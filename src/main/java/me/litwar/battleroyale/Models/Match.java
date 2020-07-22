@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class Match {
@@ -73,6 +74,7 @@ public class Match {
         this.inPreparation = true;
         this.nextSpawnPlatform = 0;
 
+        Collections.shuffle(this.players);
         for (Player player : this.players) {
             preparePlayer(player);
             teleportPlayer(player);
@@ -90,7 +92,7 @@ public class Match {
         player.getActivePotionEffects().clear();
 
         player.getEquipment().setChestplate(new ItemStack(Material.ELYTRA));
-        player.getInventory().addItem(new ItemStack(Material.BREAD, 10));
+        player.getInventory().addItem(new ItemStack(Material.BREAD, 15));
         player.getInventory().addItem(new ItemStack(Material.FIREWORK, 1));
         player.getInventory().addItem(new ItemStack(Material.COMPASS));
     }

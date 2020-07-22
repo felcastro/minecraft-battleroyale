@@ -13,6 +13,9 @@ commands:
   setattackspeed:
     description: Sets players attack speed
     default: op
+  setaxeattackspeed:
+    description: Sets axe attack speed
+    default: op
   setworldborder:
     description: Sets default world border size
     default: op

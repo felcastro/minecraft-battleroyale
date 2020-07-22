@@ -1,14 +1,15 @@
 package me.litwar.battleroyale.Models;
 
 import me.litwar.battleroyale.Configuration;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ public class Arena {
         setArena(true);
         setChests();
         setEnchantmentTables();
+        setAnvils();
     }
 
     public Arena(World world, boolean allowOcean, int worldBorderSize, int chestCount, int enchantmentTablesCount) {
@@ -47,6 +49,7 @@ public class Arena {
         setArena(false);
         setChests();
         setEnchantmentTables();
+        setAnvils();
     }
 
     public World getWorld() {
@@ -112,7 +115,6 @@ public class Arena {
     }
 
     private void setArenaSpawn() {
-        System.out.println(this.allowOcean);
         int spawnX;
         int spawnZ;
         boolean oceanFound;
@@ -120,7 +122,6 @@ public class Arena {
             spawnX = getRandomCoordinate();
             spawnZ = getRandomCoordinate();
             oceanFound = this.hasOcean(spawnX, spawnZ);
-            System.out.println(oceanFound);
         } while (!this.allowOcean && oceanFound);
 
         this.spawn = new Location(this.world, spawnX, 160, spawnZ);
@@ -195,6 +196,8 @@ public class Arena {
         int blockLootRng;
         int extraLootRng;
         int simpleLootRng;
+        int potionLootRng;
+        int bookLootRng;
         int rareLootRng;
         int godLootRng;
         ArrayList<ItemStack> invArray;
@@ -213,6 +216,8 @@ public class Arena {
             blockLootRng = ThreadLocalRandom.current().nextInt(0, 100);
             extraLootRng = ThreadLocalRandom.current().nextInt(0, 100);
             simpleLootRng = ThreadLocalRandom.current().nextInt(0, 100);
+            potionLootRng = ThreadLocalRandom.current().nextInt(0, 100);
+            bookLootRng = ThreadLocalRandom.current().nextInt(0, 100);
             rareLootRng = ThreadLocalRandom.current().nextInt(0, 100);
             godLootRng = ThreadLocalRandom.current().nextInt(0, 100);
             if (blockLootRng < Configuration.lootPercentages.get(0)) {
@@ -230,14 +235,17 @@ public class Arena {
                 }
                 invArray.addAll(Arrays.asList(Configuration.simpleLoot[selectedItem]));
             }
-            if (simpleLootRng < Configuration.lootPercentages.get(3)) {
+            if (potionLootRng < Configuration.lootPercentages.get(3)) {
                 invArray.add(Configuration.getRandomPotion());
             }
-            if (rareLootRng < Configuration.lootPercentages.get(4)) {
+            if (bookLootRng < Configuration.lootPercentages.get(4)) {
+                invArray.add(Configuration.getRandomBook());
+            }
+            if (rareLootRng < Configuration.lootPercentages.get(5)) {
                 selectedItem = ThreadLocalRandom.current().nextInt(0, Configuration.rareLoot.length);
                 invArray.addAll(Arrays.asList(Configuration.rareLoot[selectedItem]));
             }
-            if (godLootRng < Configuration.lootPercentages.get(5)) {
+            if (godLootRng < Configuration.lootPercentages.get(6)) {
                 selectedItem = ThreadLocalRandom.current().nextInt(0, Configuration.godLoot.length);
                 invArray.addAll(Arrays.asList(Configuration.godLoot[selectedItem]));
             }
@@ -270,6 +278,43 @@ public class Arena {
                 tableBlock.getChunk().unload();
                 shouldUnload = false;
             }
+        }
+    }
+
+    private void setAnvils() {
+        int halfArenaSize = Configuration.worldBorder / 2;
+        int x, z;
+        Block anvilBlock;
+        boolean shouldUnload = false;
+        for (int i = 0; i < this.enchantmentTablesCount; i++) {
+            x = ThreadLocalRandom.current().nextInt((int) spawn.getX() - halfArenaSize, (int) spawn.getX() + halfArenaSize);
+            z = ThreadLocalRandom.current().nextInt((int) spawn.getZ() - halfArenaSize, (int) spawn.getZ() + halfArenaSize);
+            anvilBlock = this.world.getHighestBlockAt(x, z);
+            if (!anvilBlock.getChunk().isLoaded()) {
+                anvilBlock.getChunk().load();
+                shouldUnload = true;
+            }
+            anvilBlock.setType(Material.ANVIL);
+            if (shouldUnload) {
+                anvilBlock.getChunk().unload();
+                shouldUnload = false;
+            }
+        }
+    }
+
+    public void startAirAttack(Plugin plugin, int middleX, int middleZ, int bombCount) {
+        for (int i = 0; i < bombCount; i++) {
+            Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+                int x = ThreadLocalRandom.current().nextInt(middleX - 20, middleX + 20);
+                int z = ThreadLocalRandom.current().nextInt(middleZ - 20, middleZ + 20);
+                int y = world.getHighestBlockYAt(x, z) + 10;
+                Location tntBlock = world.getBlockAt(x, y, z).getLocation();
+                Entity tnt = world.spawn(tntBlock, TNTPrimed.class);
+                world.playSound(tntBlock, Sound.ENTITY_TNT_PRIMED, 1, 1);
+                ((TNTPrimed) tnt).setIsIncendiary(true);
+                ((TNTPrimed) tnt).setYield(0.0f);
+                ((TNTPrimed) tnt).setFuseTicks(35);
+            }, 10 * i);
         }
     }
 }

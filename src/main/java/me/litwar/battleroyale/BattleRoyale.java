@@ -14,21 +14,28 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public final class BattleRoyale extends JavaPlugin implements Listener {
 
     private ItemStack shield = new ItemStack(Material.SHIELD, 1);
+    private ArrayList<Material> axes = new ArrayList<>();
+    private ArrayList<String> forbiddenNames = new ArrayList<>();
+
     private FileConfiguration config = getConfig();
     private World world;
 
@@ -55,9 +62,24 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
 
         // Other server configuration
         world.setStorm(false);
+        axes.add(Material.WOOD_AXE);
+        axes.add(Material.STONE_AXE);
+        axes.add(Material.IRON_AXE);
+        axes.add(Material.GOLD_AXE);
+        axes.add(Material.DIAMOND_AXE);
+        forbiddenNames.add("Aegis");
+        forbiddenNames.add("Crown of Immortality");
+        forbiddenNames.add("Achilles Chestplate");
+        forbiddenNames.add("Achilles Leggings");
+        forbiddenNames.add("Hermes Boots");
+        forbiddenNames.add("Excalibur");
+        forbiddenNames.add("Mjölnir");
+        forbiddenNames.add("Doom Bow");
+        forbiddenNames.add("ADMIN POTION");
 
         // Add default values to config.yml
         config.addDefault("attackSpeed", 30);
+        config.addDefault("axeAttackSpeed", 6);
         config.addDefault("worldBorder", 1000);
         config.addDefault("worldBorderShrinkTime", 480);
         config.addDefault("worldTime", 2000);
@@ -70,6 +92,7 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
         lp.add(100);
         lp.add(100);
         lp.add(15);
+        lp.add(10);
         lp.add(8);
         lp.add(1);
         config.addDefault("lootPercentages", lp);
@@ -78,6 +101,7 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
 
         // Load config.yml values
         Configuration.attackSpeed = config.getInt("attackSpeed");
+        Configuration.axeAttackSpeed = config.getInt("axeAttackSpeed");
         Configuration.worldBorder = config.getInt("worldBorder");
         Configuration.worldBorderShrinkTime = config.getInt("worldBorderShrinkTime");
         Configuration.worldTime = config.getInt("worldTime");
@@ -95,6 +119,7 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
         getCommand("startgame").setExecutor(new StartGame(this));
         getCommand("rank").setExecutor(new Rank(this));
         getCommand("setattackspeed").setExecutor(new SetAttackSpeed(this));
+        getCommand("setaxeattackspeed").setExecutor(new SetAxeAttackSpeed(this));
         getCommand("setworldborder").setExecutor(new SetWorldBorder(this));
         getCommand("setbordershrink").setExecutor(new SetWorldBorderShrink(this));
         getCommand("setlootpercentage").setExecutor(new SetLootPercentages(this));
@@ -104,6 +129,16 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
         getCommand("setworldtime").setExecutor(new SetWorldTime(this));
 
         getServer().dispatchCommand(Bukkit.getConsoleSender(), "newgame");
+
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
+            for (Player player : Configuration.currentMatch.getPlayers()) {
+                if (axes.contains(player.getInventory().getItemInMainHand().getType())) {
+                    player.getAttribute(Attribute.GENERIC_ATTACK_SPEED).setBaseValue(Configuration.axeAttackSpeed);
+                } else if (player.getAttribute(Attribute.GENERIC_ATTACK_SPEED).getBaseValue() != Configuration.attackSpeed) {
+                    player.getAttribute(Attribute.GENERIC_ATTACK_SPEED).setBaseValue(Configuration.attackSpeed);
+                }
+            }
+        }, 0, 3);
     }
 
     @EventHandler
@@ -137,7 +172,7 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBreakBlock(BlockBreakEvent event) {
-        if (event.getBlock().getType().equals(Material.ENCHANTMENT_TABLE)) {
+        if (event.getBlock().getType().equals(Material.ENCHANTMENT_TABLE) || event.getBlock().getType().equals(Material.ANVIL)) {
             event.setCancelled(true);
         }
     }
@@ -146,11 +181,21 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
     public void onPlaceBlock(BlockPlaceEvent event) {
         if (event.getBlock().getType().equals(Material.TNT) && !Configuration.currentMatch.getArena().isCloseToSpawn(event.getBlock().getLocation())) {
             event.getBlock().setType(Material.AIR);
-            Entity tnt = world.spawn(new Location(world, event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ()), TNTPrimed.class);
+            Location loc = new Location(world, event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+            Entity tnt = world.spawn(loc, TNTPrimed.class);
+            world.playSound(loc, Sound.ENTITY_TNT_PRIMED, 1, 1);
             ((TNTPrimed) tnt).setFuseTicks(30);
+
         } else if (event.getBlock().getType().equals(Material.TNT)) {
             event.setCancelled(true);
             event.getPlayer().sendMessage(ChatColor.RED + "Não permitido no centro da arena");
+        }
+    }
+
+    @EventHandler
+    public void onEntityExplode(EntityExplodeEvent event) {
+        for (Block block: event.blockList()) {
+            block.getState().update(true);
         }
     }
 
@@ -163,8 +208,7 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
             event.getPlayer().setGameMode(GameMode.SPECTATOR);
         } else if (Configuration.currentMatch != null && Configuration.currentMatch.isInPreparation()) {
             Configuration.currentMatch.addPlayer(event.getPlayer());
-            Bukkit.broadcastMessage(ChatColor.GREEN + event.getPlayer().getName() + " entrou na partida!");
-            System.out.println("Players in match: " + Configuration.currentMatch.getPlayers().size());
+            event.setJoinMessage(ChatColor.GREEN + event.getPlayer().getName() + " entrou na partida!");
         }
         if (!config.contains("wins." + event.getPlayer().getName())) {
             config.set("wins." + event.getPlayer().getName(), 0);
@@ -187,7 +231,7 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
                 event.setDeathMessage(ChatColor.RED + event.getDeathMessage() + " | Restam " + Configuration.currentMatch.getPlayers().size() + " jogadores.");
             }
             Entity e = event.getEntity().getPlayer().getKiller();
-            if(e != null) {
+            if (e != null) {
                 config.set("kills." + e.getName(), config.getInt("kills." + e.getName()) + 1);
                 saveConfig();
                 if (Configuration.currentMatch.getPlayersCount() == Configuration.currentMatch.getPlayers().size() + 1) {
@@ -217,15 +261,36 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
                             break;
                     }
                 }
+                for (Player player : getServer().getOnlinePlayers()) {
+                    if (player.getGameMode().equals(GameMode.SPECTATOR) || player.getName().equals(event.getEntity().getPlayer().getName())) {
+                        player.sendMessage(ChatColor.BLUE + e.getName() + " ficou com " + (int) event.getEntity().getPlayer().getKiller().getHealth() + " corações.");
+                    }
+                }
+            }
+            Location deathLocation = event.getEntity().getLocation();
+            if (!Configuration.currentMatch.getArena().isCloseToSpawn(deathLocation)) {
+                Location sideDeathLocation = new Location(world, (int) deathLocation.getX() + 1, (int) deathLocation.getY(), (int) deathLocation.getZ() - 1);
+                ItemStack[] inventory = event.getEntity().getInventory().getContents();
+
+                world.getBlockAt(deathLocation).setType(Material.CHEST);
+                Chest chest = ((Chest) world.getBlockAt(deathLocation).getState());
+                world.getBlockAt(sideDeathLocation).setType(Material.CHEST);
+                Chest chestOnTop = ((Chest) world.getBlockAt(sideDeathLocation).getState());
+
+                int itemsAdded = 0;
+                for (ItemStack item : inventory) {
+                    if (itemsAdded < 30 && item != null && !item.getType().equals(Material.AIR)) {
+                        chest.getInventory().addItem(item);
+                        itemsAdded++;
+                    } else if (item != null && !item.getType().equals(Material.AIR)) {
+                        chestOnTop.getInventory().addItem(item);
+                    }
+                }
+                event.setKeepInventory(true);
             }
         }
         event.getEntity().getPlayer().setGameMode(GameMode.SPECTATOR);
     }
-
-//    @EventHandler
-//    public void onPlayerDropItem(PlayerDropItemEvent event) {
-//        event.getItemDrop().remove();
-//    }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
@@ -248,6 +313,33 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
     }
 
     @EventHandler
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player) {
+            Player damager = (Player) event.getDamager();
+            Entity damaged = event.getEntity();
+            if (damager.getInventory().getItemInMainHand() != null &&
+                    damager.getInventory().getItemInMainHand().hasItemMeta() &&
+                    damager.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("Mjölnir")) {
+                Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
+                    world.strikeLightning(damaged.getLocation());
+                }, 10);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerEggThrow(PlayerEggThrowEvent event) {
+        event.setHatching(false);
+        Location location = event.getEgg().getLocation();
+        for (int i = (int) location.getX() - 3; i <= location.getX() + 3; i++) {
+            for (int j = (int) location.getZ() - 3; j <= location.getZ() + 3; j++) {
+                Block block = world.getBlockAt(i, (int) location.getY(), j);
+                block.setType(Material.FIRE);
+            }
+        }
+    }
+
+    @EventHandler
     public void onItemConsume(PlayerItemConsumeEvent event) {
         try {
             if (event.getItem().hasItemMeta() && event.getItem().getItemMeta().getDisplayName().equals("ADMIN POTION")) {
@@ -261,16 +353,23 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
         }
     }
 
-//    @EventHandler
-//    public void onPlayerInteract(PlayerInteractEvent event) {
-//        if (event.getPlayer().getEquipment().getHelmet() != null) {
-//            System.out.println(event.getPlayer().getEquipment().getHelmet().getItemMeta().getDisplayName());
-//            if (event.getAction().equals(Action.) && event.getPlayer().getEquipment().getHelmet().getItemMeta().getDisplayName().equals("Crown of Immortality")) {
-//                System.out.println("Right clicked anywhere");
-//                event.getPlayer().teleport(event.getPlayer().getTargetBlock(null, 100).getLocation());
-//            }
-//        }
-//    }
+    @EventHandler
+    public void onInventoryClick (InventoryClickEvent event){
+        if (event.getView().getType() == InventoryType.ANVIL) {
+            if (event.getRawSlot() == 2) {
+                if (event.getInventory().getItem(2).hasItemMeta() &&
+                        (forbiddenNames.contains(event.getInventory().getItem(2).getItemMeta().getDisplayName()))) {
+                    event.setCancelled(true);
+                } else if (event.getInventory().getItem(0).hasItemMeta() &&
+                        forbiddenNames.contains(event.getInventory().getItem(0).getItemMeta().getDisplayName())) {
+                    event.setCancelled(true);
+                } else if (event.getInventory().getItem(1).hasItemMeta() &&
+                        forbiddenNames.contains(event.getInventory().getItem(1).getItemMeta().getDisplayName())) {
+                    event.setCancelled(true);
+                }
+            }
+        }
+    }
 
     @EventHandler
     public void onWeatherChange(WeatherChangeEvent event) {
