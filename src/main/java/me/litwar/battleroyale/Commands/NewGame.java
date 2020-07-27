@@ -3,6 +3,9 @@ package me.litwar.battleroyale.Commands;
 import me.litwar.battleroyale.Configuration;
 import me.litwar.battleroyale.Models.Arena;
 import me.litwar.battleroyale.Models.Match;
+import me.litwar.battleroyale.Structures.StructureBlock;
+import me.litwar.battleroyale.Structures.StructureBuilder;
+import me.litwar.battleroyale.Structures.StructureLayer;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
@@ -14,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Team;
 
+import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ThreadLocalRandom;
@@ -46,9 +50,9 @@ public class NewGame implements CommandExecutor {
                 } catch (IllegalArgumentException ex) {
                     sender.sendMessage("Invalid biome.");
                 }
-                arena = new Arena(world, Biome.valueOf(args[0].toUpperCase().replace(' ', '_')), Configuration.worldBorder, Configuration.chestCount, Configuration.enchantmentTablesCount);
+                arena = new Arena(world, Biome.valueOf(args[0].toUpperCase().replace(' ', '_')), Configuration.worldBorder, Configuration.chestCount, Configuration.enchantmentTablesCount, Configuration.structureCount);
             } else {
-                arena = new Arena(world, Configuration.allowOceanLevels, Configuration.worldBorder, Configuration.chestCount, Configuration.enchantmentTablesCount);
+                arena = new Arena(world, Configuration.allowOceanLevels, Configuration.worldBorder, Configuration.chestCount, Configuration.enchantmentTablesCount, Configuration.structureCount);
             }
 
             // Sets new match
@@ -70,6 +74,4 @@ public class NewGame implements CommandExecutor {
         sender.sendMessage("You are not an admin.");
         return false;
     }
-
-
 }

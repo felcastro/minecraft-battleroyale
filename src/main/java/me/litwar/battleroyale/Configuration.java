@@ -31,6 +31,7 @@ public class Configuration {
     public static int worldTime;
     public static int chestCount;
     public static int enchantmentTablesCount;
+    public static int structureCount;
     public static boolean allowOceanLevels;
     public static boolean allowMobs;
     public static List<Integer> lootPercentages;
@@ -52,7 +53,6 @@ public class Configuration {
     };
 
     public static ItemStack[][] blockLoot = new ItemStack[][] {
-            {new ItemStack(Material.QUARTZ_BLOCK, 16)},
             {new ItemStack(Material.BRICK, 16)},
             {new ItemStack(Material.CONCRETE, 16)},
             {new ItemStack(Material.PACKED_ICE, 16)},
@@ -65,16 +65,15 @@ public class Configuration {
             {new ItemStack(Material.STAINED_GLASS, 16)},
     };
     public static ItemStack[][] extraLoot = new ItemStack[][] {
-            {new ItemStack(Material.BUCKET)},
             {new ItemStack(Material.ENDER_PEARL, 1)},
             {new ItemStack(Material.GOLD_PICKAXE)},
-//            {new ItemStack(Material.FIREWORK, 1)},
             {new ItemStack(Material.FLINT_AND_STEEL, 1)},
             {new ItemStack(Material.INK_SACK, 2, (short) 4)},
             {new ItemStack(Material.EXP_BOTTLE, 5)},
             {new ItemStack(Material.IRON_INGOT, 2)},
             {new ItemStack(Material.GOLD_INGOT, 2)},
             {new ItemStack(Material.MILK_BUCKET)},
+            {new ItemStack(Material.QUARTZ_BLOCK, 1)},
     };
     public static ItemStack[][] simpleLoot = new ItemStack[][] {
             {new ItemStack(Material.IRON_SWORD)},
@@ -83,12 +82,12 @@ public class Configuration {
             {new ItemStack(Material.IRON_CHESTPLATE)},
             {new ItemStack(Material.IRON_LEGGINGS)},
             {new ItemStack(Material.IRON_BOOTS)},
-            {new ItemStack(Material.GOLD_HELMET)},
-            {new ItemStack(Material.GOLD_CHESTPLATE)},
-            {new ItemStack(Material.GOLD_LEGGINGS)},
-            {new ItemStack(Material.GOLD_BOOTS)},
-            {new ItemStack(Material.GOLD_SWORD)},
-            {new ItemStack(Material.GOLD_AXE)},
+            {new ItemStack(Material.LEATHER_HELMET)},
+            {new ItemStack(Material.LEATHER_CHESTPLATE)},
+            {new ItemStack(Material.LEATHER_LEGGINGS)},
+            {new ItemStack(Material.LEATHER_BOOTS)},
+            {new ItemStack(Material.STONE_SWORD)},
+            {new ItemStack(Material.STONE_AXE)},
             {new ItemStack(Material.CHAINMAIL_HELMET)},
             {new ItemStack(Material.CHAINMAIL_CHESTPLATE)},
             {new ItemStack(Material.CHAINMAIL_LEGGINGS)},
@@ -156,13 +155,15 @@ public class Configuration {
             {new ItemStack(Material.TOTEM)},
             {getEnchantedItem(Material.SHIELD, new Enchantment[] {Enchantment.DURABILITY, Enchantment.MENDING}, new int[] {10, 1}, "Aegis")},
             {getGodPotion()},
-            {getEnchantedItem(Material.DIAMOND_HELMET, new Enchantment[] {Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.OXYGEN}, new int[] {4, 10}, "Crown of Immortality")},
+            {getEnchantedItem(Material.DIAMOND_HELMET, new Enchantment[] {Enchantment.OXYGEN}, new int[] {3}, "Crown of Immortality")},
             {getEnchantedItem(Material.DIAMOND_CHESTPLATE, new Enchantment[] {Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.PROTECTION_EXPLOSIONS}, new int[] {4, 10}, "Achilles Chestplate")},
             {getEnchantedItem(Material.DIAMOND_LEGGINGS, new Enchantment[] {Enchantment.PROTECTION_PROJECTILE, Enchantment.PROTECTION_FIRE}, new int[] {10, 10}, "Achilles Leggings")},
-            {getEnchantedItem(Material.DIAMOND_BOOTS, new Enchantment[] {Enchantment.PROTECTION_FALL, Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.DEPTH_STRIDER, Enchantment.FROST_WALKER}, new int[] {10, 3, 10, 1}, "Hermes Boots")},
+            {getEnchantedItem(Material.DIAMOND_BOOTS, new Enchantment[] {Enchantment.PROTECTION_FALL, Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.DEPTH_STRIDER, Enchantment.FROST_WALKER}, new int[] {10, 4, 10, 1}, "Hermes Boots")},
             {getEnchantedItem(Material.DIAMOND_SWORD, new Enchantment[] {Enchantment.DAMAGE_ALL, Enchantment.FIRE_ASPECT, Enchantment.SWEEPING_EDGE}, new int[] {2, 2, 2}, "Excalibur")},
             {getEnchantedItem(Material.DIAMOND_AXE, new Enchantment[] {Enchantment.KNOCKBACK}, new int[] {4}, "Mjölnir")},
-            {getEnchantedItem(Material.BOW, new Enchantment[] {Enchantment.ARROW_DAMAGE}, new int[] {5}, "Doom Bow"), new ItemStack(Material.SPECTRAL_ARROW, 10)},
+            {getEnchantedItem(Material.BOW, new Enchantment[] {Enchantment.ARROW_DAMAGE, Enchantment.ARROW_KNOCKBACK}, new int[] {5, 2}, "Doom Bow"), new ItemStack(Material.SPECTRAL_ARROW, 7)},
+            {getEnchantedItem(Material.BOW, new Enchantment[] {Enchantment.DURABILITY}, new int[] {3}, "BarraTP"), new ItemStack(Material.ARROW, 3)},
+            {getEnchantedItem(Material.DIAMOND_HOE, new Enchantment[] {Enchantment.DAMAGE_ALL}, new int[] {5}, "Death's Scythe")},
     };
 
     static private ItemStack getGodPotion() {
@@ -184,12 +185,12 @@ public class Configuration {
 
     static private ItemStack getEnchantedItem(Material item, Enchantment[] enchantments, int[] levels, String name) {
         ItemStack enchantedItem = new ItemStack(item);
+        ItemMeta stackMeta = enchantedItem.getItemMeta();
+        stackMeta.setDisplayName(name);
         for (int i = 0; i < enchantments.length; i++) {
-            ItemMeta stackMeta = enchantedItem.getItemMeta();
-            stackMeta.setDisplayName(name);
             stackMeta.addEnchant(enchantments[i], levels[i], true);
-            enchantedItem.setItemMeta(stackMeta);
         }
+        enchantedItem.setItemMeta(stackMeta);
         return enchantedItem;
     }
 

@@ -63,10 +63,14 @@ public class StartGame implements CommandExecutor {
                 Bukkit.broadcastMessage(ChatColor.RED + "ATAQUE AÉREO INICIADO!");
 
                 int currentArenaSize = ((Configuration.worldBorder / 3) * 2) - 40;
-                int x = ThreadLocalRandom.current().nextInt((int) Configuration.currentMatch.getArena().getSpawn().getX() - currentArenaSize, (int) Configuration.currentMatch.getArena().getSpawn().getX() + currentArenaSize);
-                int z = ThreadLocalRandom.current().nextInt((int) Configuration.currentMatch.getArena().getSpawn().getZ() - currentArenaSize, (int) Configuration.currentMatch.getArena().getSpawn().getZ() + currentArenaSize);
+                int x = ThreadLocalRandom.current().nextInt(
+                        (int) Configuration.currentMatch.getArena().getSpawn().getX() - currentArenaSize,
+                        (int) Configuration.currentMatch.getArena().getSpawn().getX() + currentArenaSize);
+                int z = ThreadLocalRandom.current().nextInt(
+                        (int) Configuration.currentMatch.getArena().getSpawn().getZ() - currentArenaSize,
+                        (int) Configuration.currentMatch.getArena().getSpawn().getZ() + currentArenaSize);
 
-                Configuration.currentMatch.getArena().startAirAttack(plugin, x, z, 30);
+                Configuration.currentMatch.getArena().startAirAttack(plugin, x, z, 60);
 
             }, 20 * (Configuration.worldBorderShrinkTime / 3));
 
@@ -78,10 +82,14 @@ public class StartGame implements CommandExecutor {
                 Bukkit.broadcastMessage(ChatColor.RED + "ATAQUE AÉREO INICIADO!");
 
                 int currentArenaSize = (Configuration.worldBorder / 3) - 40;
-                int x = ThreadLocalRandom.current().nextInt((int) Configuration.currentMatch.getArena().getSpawn().getX() - currentArenaSize, (int) Configuration.currentMatch.getArena().getSpawn().getX() + currentArenaSize);
-                int z = ThreadLocalRandom.current().nextInt((int) Configuration.currentMatch.getArena().getSpawn().getZ() - currentArenaSize, (int) Configuration.currentMatch.getArena().getSpawn().getZ() + currentArenaSize);
+                int x = ThreadLocalRandom.current().nextInt(
+                        (int) Configuration.currentMatch.getArena().getSpawn().getX() - currentArenaSize,
+                        (int) Configuration.currentMatch.getArena().getSpawn().getX() + currentArenaSize);
+                int z = ThreadLocalRandom.current().nextInt(
+                        (int) Configuration.currentMatch.getArena().getSpawn().getZ() - currentArenaSize,
+                        (int) Configuration.currentMatch.getArena().getSpawn().getZ() + currentArenaSize);
 
-                Configuration.currentMatch.getArena().startAirAttack(plugin, x, z, 30);
+                Configuration.currentMatch.getArena().startAirAttack(plugin, x, z, 60);
 
             }, 20 * ((Configuration.worldBorderShrinkTime / 3) * 2));
 

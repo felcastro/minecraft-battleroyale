@@ -1,6 +1,7 @@
 package me.litwar.battleroyale.Models;
 
 import me.litwar.battleroyale.Configuration;
+import me.litwar.battleroyale.Structures.StructureBuilder;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
@@ -25,31 +26,36 @@ public class Arena {
     private int worldBorderSize;
     private int chestCount;
     private int enchantmentTablesCount;
+    private int structureCount;
 
-    public Arena(World world, Biome biome, int worldBorderSize, int chestCount, int enchantmentTablesCount) {
+    public Arena(World world, Biome biome, int worldBorderSize, int chestCount, int enchantmentTablesCount, int structureCount) {
         this.world = world;
         this.biome = biome;
         this.worldBorderSize = worldBorderSize;
         this.platforms = new ArrayList<>();
         this.chestCount = chestCount;
         this.enchantmentTablesCount = enchantmentTablesCount;
+        this.structureCount = structureCount;
         setArena(true);
         setChests();
         setEnchantmentTables();
         setAnvils();
+        setStructures();
     }
 
-    public Arena(World world, boolean allowOcean, int worldBorderSize, int chestCount, int enchantmentTablesCount) {
+    public Arena(World world, boolean allowOcean, int worldBorderSize, int chestCount, int enchantmentTablesCount, int structureCount) {
         this.world = world;
         this.allowOcean = allowOcean;
         this.worldBorderSize = worldBorderSize;
         this.platforms = new ArrayList<>();
         this.chestCount = chestCount;
         this.enchantmentTablesCount = enchantmentTablesCount;
+        this.structureCount = structureCount;
         setArena(false);
         setChests();
         setEnchantmentTables();
         setAnvils();
+        setStructures();
     }
 
     public World getWorld() {
@@ -132,7 +138,7 @@ public class Arena {
     }
 
     private boolean hasOcean(int spawnX, int spawnZ) {
-        if (world.getBlockAt(spawnX, world.getHighestBlockAt(spawnX, spawnZ).getY()-1, spawnZ).isLiquid()) {
+        if (world.getBlockAt(spawnX, world.getHighestBlockAt(spawnX, spawnZ).getY() - 1, spawnZ).isLiquid()) {
             return true;
         }
         Block block;
@@ -305,16 +311,31 @@ public class Arena {
     public void startAirAttack(Plugin plugin, int middleX, int middleZ, int bombCount) {
         for (int i = 0; i < bombCount; i++) {
             Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                int x = ThreadLocalRandom.current().nextInt(middleX - 20, middleX + 20);
-                int z = ThreadLocalRandom.current().nextInt(middleZ - 20, middleZ + 20);
+                int x = ThreadLocalRandom.current().nextInt(middleX - 25, middleX + 25);
+                int z = ThreadLocalRandom.current().nextInt(middleZ - 25, middleZ + 25);
                 int y = world.getHighestBlockYAt(x, z) + 10;
                 Location tntBlock = world.getBlockAt(x, y, z).getLocation();
+                if (!tntBlock.getChunk().isLoaded()) {
+                    tntBlock.getChunk().load();
+                }
                 Entity tnt = world.spawn(tntBlock, TNTPrimed.class);
                 world.playSound(tntBlock, Sound.ENTITY_TNT_PRIMED, 1, 1);
-                ((TNTPrimed) tnt).setIsIncendiary(true);
-                ((TNTPrimed) tnt).setYield(0.0f);
+//                ((TNTPrimed) tnt).setIsIncendiary(true);
+//                ((TNTPrimed) tnt).setYield(0.0f);
                 ((TNTPrimed) tnt).setFuseTicks(35);
-            }, 10 * i);
+            }, 5 * i);
         }
     }
+
+    private void setStructures() {
+        int halfArenaSize = Configuration.worldBorder / 2;
+        int x, z;
+        StructureBuilder builder = new StructureBuilder(world);
+        for (int i = 0; i < this.structureCount; i++) {
+            x = ThreadLocalRandom.current().nextInt((int) spawn.getX() - halfArenaSize, (int) spawn.getX() + halfArenaSize);
+            z = ThreadLocalRandom.current().nextInt((int) spawn.getZ() - halfArenaSize, (int) spawn.getZ() + halfArenaSize);
+            builder.generateTower(x, z);
+        }
+    }
+
 }

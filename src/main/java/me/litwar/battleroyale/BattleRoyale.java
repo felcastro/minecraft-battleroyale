@@ -1,14 +1,13 @@
 package me.litwar.battleroyale;
 
 import me.litwar.battleroyale.Commands.*;
+import me.litwar.battleroyale.Structures.StructureBuilder;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.TNTPrimed;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -29,6 +28,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class BattleRoyale extends JavaPlugin implements Listener {
 
@@ -76,6 +76,8 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
         forbiddenNames.add("Mjölnir");
         forbiddenNames.add("Doom Bow");
         forbiddenNames.add("ADMIN POTION");
+        forbiddenNames.add("BarraTP");
+        forbiddenNames.add("Death's Scythe");
 
         // Add default values to config.yml
         config.addDefault("attackSpeed", 30);
@@ -85,6 +87,7 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
         config.addDefault("worldTime", 2000);
         config.addDefault("chestCount", 1000);
         config.addDefault("enchantmentTablesCount", 50);
+        config.addDefault("structureCount", 10);
         config.addDefault("allowOceanLevels", false);
         config.addDefault("allowMobs", false);
         ArrayList<Integer> lp = new ArrayList<Integer>();
@@ -110,6 +113,7 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
         Configuration.allowOceanLevels = config.getBoolean("allowOceanLevels");
         Configuration.allowMobs = config.getBoolean("allowMobs");
         Configuration.lootPercentages = config.getIntegerList("lootPercentages");
+        Configuration.structureCount = config.getInt("structureCount");
 
         // Registering Events
         getServer().getPluginManager().registerEvents(this, this);
@@ -137,6 +141,12 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
                 } else if (player.getAttribute(Attribute.GENERIC_ATTACK_SPEED).getBaseValue() != Configuration.attackSpeed) {
                     player.getAttribute(Attribute.GENERIC_ATTACK_SPEED).setBaseValue(Configuration.attackSpeed);
                 }
+                if (player.getInventory().getBoots() != null && player.getInventory().getBoots().hasItemMeta() && player.getInventory().getBoots().getItemMeta().getDisplayName().equals("Hermes Boots")) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20*5, 2), true);
+                }
+                if (player.getInventory().getHelmet() != null && player.getInventory().getHelmet().hasItemMeta() && player.getInventory().getHelmet().getItemMeta().getDisplayName().equals("Crown of Immortality")) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 20*15, 0), true);
+                }
             }
         }, 0, 3);
     }
@@ -145,6 +155,19 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
     public void onDamage(EntityDamageEvent event) {
         if (!Configuration.damageEnabled) {
             event.setCancelled(true);
+        } else {
+            if (event.getEntity() instanceof Player) {
+                Player player = (Player) event.getEntity();
+                if (player.getInventory().getHelmet() != null &&
+                        player.getInventory().getHelmet().hasItemMeta() &&
+                        player.getInventory().getHelmet().getItemMeta().getDisplayName().equals("Crown of Immortality")) {
+                    if (ThreadLocalRandom.current().nextInt(0, 6) == 0) {
+                        event.setDamage(0);
+                        player.sendMessage(ChatColor.BLUE + "Crown of Immortality - DANO IGNORADO.");
+                        world.playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1, 1);
+                    }
+                }
+            }
         }
     }
 
@@ -179,16 +202,20 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlaceBlock(BlockPlaceEvent event) {
-        if (event.getBlock().getType().equals(Material.TNT) && !Configuration.currentMatch.getArena().isCloseToSpawn(event.getBlock().getLocation())) {
-            event.getBlock().setType(Material.AIR);
-            Location loc = new Location(world, event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
-            Entity tnt = world.spawn(loc, TNTPrimed.class);
-            world.playSound(loc, Sound.ENTITY_TNT_PRIMED, 1, 1);
-            ((TNTPrimed) tnt).setFuseTicks(30);
-
-        } else if (event.getBlock().getType().equals(Material.TNT)) {
+        if (Configuration.currentMatch.getArena().isCloseToSpawn(event.getBlock().getLocation())) {
             event.setCancelled(true);
             event.getPlayer().sendMessage(ChatColor.RED + "Não permitido no centro da arena");
+        } else {
+            if (event.getBlock().getType().equals(Material.TNT)) {
+                event.getBlock().setType(Material.AIR);
+                Location loc = new Location(world, event.getBlock().getX(), event.getBlock().getY(), event.getBlock().getZ());
+                Entity tnt = world.spawn(loc, TNTPrimed.class);
+                world.playSound(loc, Sound.ENTITY_TNT_PRIMED, 1, 1);
+                ((TNTPrimed) tnt).setFuseTicks(30);
+            } else if (event.getBlock().getType().equals(Material.QUARTZ_BLOCK)) {
+                StructureBuilder builder = new StructureBuilder(world);
+                builder.generateQuartzBase(new Location(world, event.getBlock().getLocation().getX(), event.getBlock().getLocation().getY() + 1, event.getBlock().getLocation().getZ()));
+            }
         }
     }
 
@@ -324,6 +351,12 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
                     world.strikeLightning(damaged.getLocation());
                 }, 10);
             }
+            if (damager.getInventory().getItemInMainHand() != null &&
+                    damager.getInventory().getItemInMainHand().hasItemMeta() &&
+                    damager.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("Death's Scythe")) {
+                double health = damager.getHealth() + (event.getDamage()/2);
+                damager.setHealth(health >= 20 ? 20.0 : health);
+            }
         }
     }
 
@@ -340,10 +373,18 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
     }
 
     @EventHandler
+    public void onProjectileLaunch(ProjectileLaunchEvent event) {
+        if(event.getEntity() instanceof Snowball && event.getEntity().getShooter() instanceof Player) {
+
+        }
+    }
+
+    @EventHandler
     public void onItemConsume(PlayerItemConsumeEvent event) {
         try {
             if (event.getItem().hasItemMeta() && event.getItem().getItemMeta().getDisplayName().equals("ADMIN POTION")) {
                 Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + event.getPlayer().getName() + " se tornou um deus!");
+                event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20*15, 0));
                 Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
                     Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + event.getPlayer().getName() + " voltou ao normal.");
                 }, 20 * 15);
@@ -367,6 +408,25 @@ public final class BattleRoyale extends JavaPlugin implements Listener {
                         forbiddenNames.contains(event.getInventory().getItem(1).getItemMeta().getDisplayName())) {
                     event.setCancelled(true);
                 }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEntityShootBow(EntityShootBowEvent event) {
+        if (event.getBow().hasItemMeta()) {
+            if (event.getBow().getItemMeta().getDisplayName().equals("Doom Bow")) {
+                if (event.getProjectile().getName().equals("entity.SpectralArrow.name")) {
+                    event.getProjectile().setGravity(false);
+//                event.getProjectile().setVelocity(event.getProjectile().getVelocity().multiply(5));
+                    world.playSound(event.getEntity().getLocation(), Sound.BLOCK_ANVIL_PLACE, 15, 0.05f);
+                } else {
+                    event.setCancelled(true);
+                }
+            } else if (event.getBow().getItemMeta().getDisplayName().equals("BarraTP")) {
+                Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
+                    event.getEntity().teleport(event.getProjectile().getLocation());
+                }, 40);
             }
         }
     }
